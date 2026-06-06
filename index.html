@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#0F172A"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Diet Plan"/>
+<title>My Diet Plan</title>
+<link rel="manifest" href="manifest.json"/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0A0F1E;
+    --surface: #131929;
+    --surface2: #1C2537;
+    --border: rgba(255,255,255,0.06);
+    --text: #F0F4FF;
+    --muted: #8896B0;
+    --dim: #3D4F6B;
+    --green: #22D3A5;
+    --blue: #4F8EF7;
+    --orange: #FF8C42;
+    --red: #FF5A7E;
+    --purple: #A78BFA;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overscroll-behavior: none;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,15,30,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-top {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+  }
+  .header h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; color: var(--text); }
+  .header-badge {
+    background: linear-gradient(135deg, var(--green), #0EA5E9);
+    border-radius: 20px; padding: 4px 12px;
+    font-family: var(--mono); font-size: 12px; font-weight: 600; color: #fff;
+  }
+  .header-sub { font-family: var(--mono); font-size: 10px; color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+
+  /* ── DAY TABS ── */
+  .day-tabs {
+    display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .day-tabs::-webkit-scrollbar { display: none; }
+  .day-tab {
+    flex-shrink: 0; padding: 7px 14px; border-radius: 10px;
+    border: 1px solid transparent; cursor: pointer;
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    background: var(--surface); color: var(--muted);
+    transition: all 0.2s;
+  }
+  .day-tab.active {
+    background: linear-gradient(135deg, #1D3A6E, #2D1B6E);
+    border-color: rgba(79,142,247,0.4);
+    color: #fff;
+    box-shadow: 0 2px 12px rgba(79,142,247,0.25);
+  }
+
+  /* ── MAIN ── */
+  .main { padding: 12px 14px 100px; }
+
+  /* ── DAY SUMMARY BAR ── */
+  .day-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+  }
+  .day-name { font-size: 26px; font-weight: 800; letter-spacing: -0.04em; }
+  .day-cal {
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    color: var(--green);
+    background: rgba(34,211,165,0.1);
+    border: 1px solid rgba(34,211,165,0.2);
+    padding: 5px 14px; border-radius: 20px;
+  }
+  .cal-bar-wrap { margin-bottom: 16px; }
+  .cal-bar-track {
+    height: 3px; background: var(--surface2); border-radius: 3px; overflow: hidden;
+  }
+  .cal-bar-fill {
+    height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, var(--blue), var(--purple), var(--green));
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+  .cal-bar-labels {
+    display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 9px; color: var(--dim); margin-top: 4px;
+  }
+
+  /* ── MEAL CARD ── */
+  .meal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: transform 0.15s;
+  }
+  .meal-card:active { transform: scale(0.99); }
+
+  .meal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .meal-header-left { display: flex; align-items: center; gap: 10px; }
+  .meal-icon { font-size: 20px; flex-shrink: 0; }
+  .meal-label { font-size: 15px; font-weight: 700; color: var(--text); }
+  .meal-time { font-family: var(--mono); font-size: 10px; color: var(--dim); margin-top: 1px; }
+  .meal-header-right { display: flex; align-items: center; gap: 8px; }
+  .meal-cal-badge {
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    color: var(--muted); background: var(--surface2);
+    padding: 3px 9px; border-radius: 8px;
+  }
+  .chevron {
+    font-size: 10px; color: var(--dim);
+    transition: transform 0.25s;
+    display: inline-block;
+  }
+  .chevron.open { transform: rotate(180deg); }
+
+  .meal-body { display: none; padding: 10px 14px 12px; }
+  .meal-body.open { display: block; }
+
+  .meal-item {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 7px 0; gap: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .meal-item:last-of-type { border-bottom: none; }
+  .item-name { font-size: 13px; color: #C8D8F0; font-weight: 500; line-height: 1.3; }
+  .item-qty {
+    font-family: var(--mono); font-size: 11px; color: var(--dim);
+    background: rgba(255,255,255,0.04);
+    padding: 2px 6px; border-radius: 4px;
+    margin-top: 3px; display: inline-block;
+  }
+  .item-cal {
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    color: var(--muted); flex-shrink: 0;
+  }
+
+  .meal-note {
+    margin-top: 10px;
+    padding: 8px 11px;
+    background: rgba(79,142,247,0.07);
+    border-left: 2px solid var(--blue);
+    border-radius: 6px;
+    font-size: 12px; color: var(--muted); line-height: 1.6; font-style: italic;
+  }
+
+  /* ── accent colors per meal type ── */
+  .accent-breakfast .meal-label { color: #FFB347; }
+  .accent-break .meal-label { color: var(--blue); }
+  .accent-lunch .meal-label { color: var(--green); }
+  .accent-snack .meal-label { color: var(--purple); }
+  .accent-shake .meal-label { color: var(--red); }
+  .accent-dinner .meal-label { color: #FDD; }
+
+  /* ── WEEKLY GRID ── */
+  .weekly-section { margin-top: 24px; margin-bottom: 20px; }
+  .section-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em;
+    color: var(--dim); text-transform: uppercase; margin-bottom: 10px;
+  }
+  .weekly-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 5px; }
+  .week-cell {
+    background: var(--surface); border-radius: 10px;
+    padding: 8px 4px; text-align: center; cursor: pointer;
+    border: 1px solid transparent; transition: all 0.2s;
+  }
+  .week-cell.active {
+    background: rgba(79,142,247,0.12);
+    border-color: rgba(79,142,247,0.35);
+  }
+  .week-cell-day { font-family: var(--mono); font-size: 9px; color: var(--dim); margin-bottom: 4px; }
+  .week-cell-cal { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text); }
+  .week-cell-unit { font-family: var(--mono); font-size: 8px; color: var(--dim); }
+
+  /* ── STATS ROW ── */
+  .stats-row { display: flex; gap: 8px; margin-top: 12px; }
+  .stat-box {
+    flex: 1; background: var(--surface); border-radius: 12px;
+    padding: 12px 10px; text-align: center; border: 1px solid var(--border);
+  }
+  .stat-label { font-family: var(--mono); font-size: 9px; color: var(--dim); text-transform: uppercase; margin-bottom: 4px; }
+  .stat-val { font-family: var(--mono); font-size: 18px; font-weight: 700; }
+  .stat-unit { font-family: var(--mono); font-size: 9px; color: var(--dim); margin-top: 2px; }
+
+  /* ── RULES ── */
+  .rules-section { margin-top: 20px; }
+  .rule-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .rule-item:last-child { border-bottom: none; }
+  .rule-icon { font-size: 18px; flex-shrink: 0; }
+  .rule-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .rule-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+  /* ── INSTALL BANNER ── */
+  .install-banner {
+    position: fixed; bottom: 16px; left: 14px; right: 14px; z-index: 200;
+    background: linear-gradient(135deg, #1D3A6E, #2D1B6E);
+    border: 1px solid rgba(79,142,247,0.4);
+    border-radius: 14px; padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .install-text { font-size: 13px; color: #C8D8FF; line-height: 1.4; flex: 1; }
+  .install-text strong { color: #fff; }
+  .install-btn {
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    border: none; border-radius: 10px;
+    padding: 8px 16px; font-family: var(--sans); font-size: 13px; font-weight: 700;
+    color: #fff; cursor: pointer; flex-shrink: 0;
+    box-shadow: 0 2px 12px rgba(79,142,247,0.4);
+  }
+  .close-banner { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1>💪 Diet Plan</h1>
+    <div class="header-badge" id="todayCalBadge">~3,100 kcal</div>
+  </div>
+  <div class="header-sub">Strict Veg · 17Y · 51→58 kg · Gym</div>
+  <div class="day-tabs" id="dayTabs"></div>
+</div>
+
+<div class="main" id="main"></div>
+
+<div class="install-banner" id="installBanner" style="display:none;">
+  <div class="install-text"><strong>Add to Home Screen</strong><br>Install this as an app on your phone</div>
+  <button class="install-btn" id="installBtn">Install</button>
+  <button class="close-banner" id="closeBanner">✕</button>
+</div>
+
+<script>
+const DAYS = [
+  {
+    day:"Monday", short:"MON", totalCal:3080,
+    meals:[
+      { time:"7:30 AM", label:"Breakfast", icon:"🌅", type:"breakfast", cal:755,
+        items:[
+          {name:"Chapati (medium)",qty:"3 pieces",cal:225},
+          {name:"Paneer bhurji (crumbled paneer with onion & tomato)",qty:"100g paneer",cal:270},
+          {name:"Full-fat milk",qty:"200ml",cal:130},
+          {name:"Banana",qty:"1 medium",cal:90},
+        ], note:"Cook paneer bhurji with cumin, onion, tomato. Takes 5 mins." },
+      { time:"11:15 AM", label:"School Break", icon:"🎒", type:"break", cal:410,
+        items:[
+          {name:"Banana",qty:"2 medium",cal:180},
+          {name:"Roasted peanuts",qty:"40g (small handful)",cal:230},
+        ], note:"Pack in a zip pouch the night before. Non-negotiable." },
+      { time:"1:00 PM", label:"Lunch", icon:"☀️", type:"lunch", cal:975,
+        items:[
+          {name:"Chapati (medium)",qty:"3 pieces",cal:225},
+          {name:"Cooked rice",qty:"1 cup (200g cooked)",cal:260},
+          {name:"Dal tadka (with 1 tsp ghee)",qty:"1 bowl (200ml)",cal:220},
+          {name:"Paneer sabzi",qty:"100g paneer",cal:270},
+        ], note:"Add 1 tsp ghee to dal — easy 45 cal boost." },
+      { time:"4:00 PM", label:"After School Snack", icon:"🏠", type:"snack", cal:485,
+        items:[
+          {name:"Banana",qty:"1 large",cal:105},
+          {name:"Bread slices with peanut butter",qty:"2 slices + 2 tbsp PB",cal:380},
+        ], note:"Eat this before your nap or right after waking at 6:30." },
+      { time:"9:00 PM", label:"Post-Workout Shake", icon:"💪", type:"shake", cal:785,
+        items:[
+          {name:"American Muscles protein powder",qty:"2 scoops (54g protein)",cal:280},
+          {name:"Full-fat milk",qty:"300ml",cal:195},
+          {name:"Peanut butter",qty:"1 scoop (~30g)",cal:190},
+          {name:"Dates",qty:"2 pieces",cal:55},
+          {name:"Almonds",qty:"5 pieces",cal:35},
+          {name:"Cashews",qty:"3 pieces",cal:30},
+        ], note:"Blend everything. Your most important meal — never skip." },
+      { time:"10:00 PM", label:"Dinner", icon:"🍽️", type:"dinner", cal:440,
+        items:[
+          {name:"Chapati (medium)",qty:"2 pieces",cal:150},
+          {name:"Dal or rajma (light)",qty:"1 small bowl (150ml)",cal:170},
+          {name:"Any sabzi",qty:"1 small bowl",cal:80},
+        ], note:"Keep dinner light since you had the shake. Just 2 chapatis is fine." },
+    ]
+  },
+  {
+    day:"Tuesday", short:"TUE", totalCal:3135,
+    meals:[
+      { time:"7:30 AM", label:"Breakfast", icon:"🌅", type:"breakfast", cal:730,
+        items:[
+          {name:"Chapati (medium)",qty:"3 pieces",cal:225},
+          {name:"Rajma curry (thick)",qty:"1 bowl (200g)",cal:250},
+          {name:"Full-fat milk",qty:"200ml",cal:130},
+          {name:"Banana",qty:"1 medium",cal:90},
+        ], note:"Use leftover rajma from last night if available." },
+      { time:"11:15 AM", label:"School Break", icon:"🎒", type:"break", cal:420,
+        items:[
+          {name:"Banana",qty:"2 medium",cal:180},
+          {name:"Mixed nuts (almonds, cashews, peanuts)",qty:"40g",cal:240},
+        ], note:null },
+      { time:"1:00 PM", label:"Lunch", icon:"☀️", type:"lunch", cal:1005,
+        items:[
+          {name:"Chapati (medium)",qty:"3 pieces",cal:225},
+          {name:"Cooked rice",qty:"1 cup (200g)",cal:260},
+          {name:"Chhole (chickpeas thick gravy)",qty:"1 bowl (200g)",cal:270},
+          {name:"Paneer (added to chhole or side)",qty:"75g",cal:200},
+        ], note:"Chickpeas are very calorie-dense — best protein source for you." },
+      { time:"4:00 PM", label:"After School Snack", icon:"🏠", type:"snack", cal:510,
+        items:[
+          {name:"Mango or seasonal fruit",qty:"1 medium (200g)",cal:130},
+          {name:"Bread with peanut butter",qty:"2 slices + 2 tbsp PB",cal:380},
+        ], note:null },
+      { time:"9:00 PM", label:"Post-Workout Shake", icon:"💪", type:"shake", cal:785,
+        items:[
+          {name:"American Muscles protein powder",qty:"2 scoops",cal:280},
+          {name:"Full-fat milk",qty:"300ml",cal:195},
+          {name:"Peanut butter",qty:"1 scoop (~30g)",cal:190},
+          {name:"Dates",qty:"2 pieces",cal:55},
+          {name:"Almonds",qty:"5 pieces",cal:35},
+          {name:"Cashews",qty:"3 pieces",cal:30},
+        ], note:null },
+      { time:"10:00 PM", label:"Dinner", icon:"🍽️", type:"dinner", cal:455,
+        items:[
+          {name:"Chapati (medium)",qty:"2 pieces",cal:150},
+          {name:"Palak paneer or paneer sabzi",qty:"75g paneer",cal:200},
+          {name:"Rice (optional small portion)",qty:"½ cup (100g)",cal:130},
+        ], note:"Light dinner. Palak paneer works great — easy to make in bulk." },
+    ]
+  },
+  {
+    day:"Wednesday", short:"WED", totalCal:3170,
+    meals:[
+      { time:"7:30 AM", label:"Breakfast", icon:"🌅", type:"breakfast", cal:810,
+        items:[
+          {name:"Aloo paratha (with ghee on top)",qty:"3 medium",cal:450},
+          {name:"Full-fat curd / dahi",qty:"100g",cal:60},
+          {name:"Full-fat milk",qty:"200ml",cal:130},
+          {name:"Banana",qty:"1 medium",cal:90},
+        ], note:"Paratha is one of your best calorie-dense breakfasts — don't skip ghee." },
+      { time:"11:15 AM", label:"School Break", icon:"🎒", type:"break", cal:410,
+        items:[
+          {name:"Banana",qty:"2 medium",cal:180},
+          {name:"Roasted peanuts",qty:"40g",cal:230},
+        ], note:null },
+      { time:"1:00 PM", label:"Lunch", icon:"☀️", type:"lunch", cal:975,
+        items:[
+          {name:"Chapati (medium)",qty:"3 pieces",cal:225},
+          {name:"Cooked rice",qty:"1 cup (200g)",cal:260},
+          {name:"Dal tadka (with ghee)",qty:"1 bowl (200ml)",cal:220},
+          {name:"Paneer sabzi / matar paneer",qty:"100g paneer",cal:270},
+        ], note:null },
+      { time:"4:00 PM", label:"After School Snack", icon:"🏠", type:"snack", cal:510,
+        items:[
+          {name:"Banana",qty:"2 medium",cal:180},
+          {name:"Peanut butter toast",qty:"2 slices + 2 tbsp PB",cal:380},
+        ], note:null },
+      { time:"9:00 PM", label:"Post-Workout Shake", icon:"💪", type:"shake", cal:785,
+        items:[
+          {name:"American Muscles protein powder",qty:"2 scoops",cal:280},
+          {name:"Full-fat milk",qty:"300ml",cal:195},
+          {name:"Peanut butter",qty:"1 scoop (~30g)",cal:190},
+          {name:"Dates",qty:"2 pieces",cal:55},
+          {name:"Almonds",qty:"5 pieces",cal:35},
+          {name:"Cashews",qty:"3 pieces",cal:30},
+        ], note:null },
+      { time:"10:00 PM", label:"Dinner", icon:"🍽️", type:"dinner", cal:440,
+        items:[
+          {name:"Chapati (medium)",qty:"2 pieces",cal:150},
+          {name:"Chhole or rajma (leftover)",qty:"1 small bowl (150g)",cal:190},
+          {name:"Any sabzi / salad",qty:"1 small bowl",cal:80},
+        ], note:"Leftovers from lunch work perfectly for dinner." },
+    ]
+  },
+  {
+    day:"Thursday", short:"THU", totalCal:3145,
+    meals:[
+      { time:"7:30 AM", label:"Breakfast", icon:"🌅", type:"breakfast", cal:735,
+        items:[
+          {name:"Chapati (medium)",qty:"3 pieces",cal:225},
+          {name:"Peanut butter (spread on chapati)",qty:"2 tbsp",cal:190},
+          {name:"Banana",qty:"1 medium",cal:90},
+          {name:"Full-fat milk",qty:"200ml",cal:130},
+        ], note:"Super quick — ready in 3 mins on a busy morning." },
+      { time:"11:15 AM", label:"School Break", icon:"🎒", type:"break", cal:420,
+        items:[
+          {name:"Banana",qty:"2 medium",cal:180},
+          {name:"Mixed nuts (almonds + peanuts + cashews)",qty:"40g",cal:240},
+        ], note:null },
+      { time:"1:00 PM", label:"Lunch", icon:"☀️", type:"lunch", cal:1025,
+        items:[
+          {name:"Chapati (medium)",qty:"3 pieces",cal:225},
+          {name:"Cooked rice",qty:"1 cup (200g)",cal:260},
+          {name:"Soya chunks curry",qty:"100g dry soya (cooked)",cal:340},
+          {name:"Any vegetable sabzi",qty:"1 small bowl",cal:100},
+        ], note:"Soya chunks = extremely high protein. Great swap for paneer." },
+      { time:"4:00 PM", label:"After School Snack", icon:"🏠", type:"snack", cal:485,
+        items:[
+          {name:"Banana",qty:"1 large",cal:105},
+          {name:"Bread + peanut butter sandwich",qty:"2 slices + 2 tbsp PB",cal:380},
+        ], note:null },
+      { time:"9:00 PM", label:"Post-Workout Shake", icon:"💪", type:"shake", cal:785,
+        items:[
+          {name:"American Muscles protein powder",qty:"2 scoops",cal:280},
+          {name:"Full-fat milk",qty:"300ml",cal:195},
+          {name:"Peanut butter",qty:"1 scoop (~30g)",cal:190},
+          {name:"Dates",qty:"2 pieces",cal:55},
+          {name:"Almonds",qty:"5 pieces",cal:35},
+          {name:"Cashews",qty:"3 pieces",cal:30},
+        ], note:null },
+      { time:"10:00 PM", label:"Dinner", icon:"🍽️", type:"dinner", cal:430,
+        items:[
+          {name:"Chapati (medium)",qty:"2 pieces",cal:150},
+          {name:"Dal (any variety, with ghee)",qty:"1 bowl (200ml)",cal:220},
+          {name:"Cucumber + tomato",qty:"1 small plate",cal:40},
+        ], note:"Dal is very easy to digest at night. Add ghee." },
+    ]
+  },
+  {
+    day:"Friday", short:"FRI", totalCal:3110,
+    meals:[
+      { time:"7:30 AM", label:"Breakfast", icon:"🌅", type:"breakfast", cal:750,
+        items:[
+          {name:"Moong dal chilla (2 large)",qty:"100g batter (dry moong)",cal:290},
+          {name:"Paneer (crumbled, stuffed inside)",qty:"75g",cal:200},
+          {name:"Full-fat milk",qty:"200ml",cal:130},
+          {name:"Banana",qty:"1 medium",cal:90},
+        ], note:"High protein breakfast. Add green chutney. Takes ~10 mins." },
+      { time:"11:15 AM", label:"School Break", icon:"🎒", type:"break", cal:410,
+        items:[
+          {name:"Banana",qty:"2 medium",cal:180},
+          {name:"Roasted peanuts",qty:"40g",cal:230},
+        ], note:null },
+      { time:"1:00 PM", label:"Lunch", icon:"☀️", type:"lunch", cal:960,
+        items:[
+          {name:"Chapati (medium)",qty:"3 pieces",cal:225},
+          {name:"Cooked rice",qty:"1 cup (200g)",cal:260},
+          {name:"Rajma curry",qty:"1 bowl (200g)",cal:250},
+          {name:"Paneer (side or added to rajma)",qty:"75g",cal:200},
+        ], note:null },
+      { time:"4:00 PM", label:"After School Snack", icon:"🏠", type:"snack", cal:510,
+        items:[
+          {name:"Mango or banana",qty:"1 large fruit",cal:130},
+          {name:"Peanut butter toast",qty:"2 slices + 2 tbsp PB",cal:380},
+        ], note:null },
+      { time:"9:00 PM", label:"Post-Workout Shake", icon:"💪", type:"shake", cal:785,
+        items:[
+          {name:"American Muscles protein powder",qty:"2 scoops",cal:280},
+          {name:"Full-fat milk",qty:"300ml",cal:195},
+          {name:"Peanut butter",qty:"1 scoop (~30g)",cal:190},
+          {name:"Dates",qty:"2 pieces",cal:55},
+          {name:"Almonds",qty:"5 pieces",cal:35},
+          {name:"Cashews",qty:"3 pieces",cal:30},
+        ], note:null },
+      { time:"10:00 PM", label:"Dinner", icon:"🍽️", type:"dinner", cal:440,
+        items:[
+          {name:"Chapati (medium)",qty:"2 pieces",cal:150},
+          {name:"Paneer bhurji",qty:"75g paneer",cal:200},
+          {name:"Any sabzi",qty:"1 small bowl",cal:80},
+        ], note:"Friday dinner — paneer bhurji is quick and tasty." },
+    ]
+  },
+  {
+    day:"Saturday", short:"SAT", totalCal:3530,
+    meals:[
+      { time:"8:00 AM", label:"Breakfast", icon:"🌅", type:"breakfast", cal:870,
+        items:[
+          {name:"Paneer paratha (with ghee)",qty:"3 medium",cal:510},
+          {name:"Full-fat curd / dahi",qty:"150g",cal:90},
+          {name:"Full-fat milk",qty:"200ml",cal:130},
+          {name:"Banana",qty:"1 medium",cal:90},
+        ], note:"Weekend — take time to make a proper breakfast. This alone = 870 cal." },
+      { time:"11:00 AM", label:"Mid-Morning Snack", icon:"⏰", type:"snack", cal:480,
+        items:[
+          {name:"Banana",qty:"2 medium",cal:180},
+          {name:"Mixed nuts + peanuts",qty:"50g",cal:300},
+        ], note:"No school — use this extra slot to add more calories." },
+      { time:"1:30 PM", label:"Lunch", icon:"☀️", type:"lunch", cal:1160,
+        items:[
+          {name:"Chapati (medium)",qty:"4 pieces",cal:300},
+          {name:"Cooked rice",qty:"1 cup (200g)",cal:260},
+          {name:"Paneer makhani or palak paneer",qty:"150g paneer",cal:400},
+          {name:"Dal (with ghee)",qty:"1 bowl",cal:200},
+        ], note:"Weekend = biggest lunch of the week. No rush." },
+      { time:"4:30 PM", label:"Evening Snack", icon:"🏠", type:"snack", cal:485,
+        items:[
+          {name:"Banana",qty:"1 large",cal:105},
+          {name:"Bread + peanut butter",qty:"2 slices + 2 tbsp PB",cal:380},
+        ], note:null },
+      { time:"9:00 PM", label:"Post-Workout Shake", icon:"💪", type:"shake", cal:785,
+        items:[
+          {name:"American Muscles protein powder",qty:"2 scoops",cal:280},
+          {name:"Full-fat milk",qty:"300ml",cal:195},
+          {name:"Peanut butter",qty:"1 scoop (~30g)",cal:190},
+          {name:"Dates",qty:"2 pieces",cal:55},
+          {name:"Almonds",qty:"5 pieces",cal:35},
+          {name:"Cashews",qty:"3 pieces",cal:30},
+        ], note:null },
+      { time:"10:00 PM", label:"Dinner", icon:"🍽️", type:"dinner", cal:480,
+        items:[
+          {name:"Chapati (medium)",qty:"2–3 pieces",cal:225},
+          {name:"Rajma or chhole",qty:"1 bowl (200g)",cal:255},
+        ], note:"Saturday night — slightly bigger dinner since no school tomorrow." },
+    ]
+  },
+  {
+    day:"Sunday", short:"SUN", totalCal:3495,
+    meals:[
+      { time:"8:30 AM", label:"Breakfast", icon:"🌅", type:"breakfast", cal:820,
+        items:[
+          {name:"Poha with peanuts",qty:"150g dry poha + 30g peanuts",cal:470},
+          {name:"Full-fat milk",qty:"250ml",cal:163},
+          {name:"Banana",qty:"1 medium",cal:90},
+        ], note:"Sleep in, then relaxed big breakfast. Poha is light but calorie-dense with peanuts." },
+      { time:"11:00 AM", label:"Mid-Morning Snack", icon:"⏰", type:"snack", cal:470,
+        items:[
+          {name:"Banana",qty:"2 medium",cal:180},
+          {name:"Roasted peanuts",qty:"50g",cal:290},
+        ], note:null },
+      { time:"2:00 PM", label:"Lunch", icon:"☀️", type:"lunch", cal:1300,
+        items:[
+          {name:"Chapati (medium)",qty:"4 pieces",cal:300},
+          {name:"Cooked rice",qty:"1.5 cups (300g)",cal:390},
+          {name:"Chhole thick gravy",qty:"1 large bowl (250g)",cal:340},
+          {name:"Paneer bhurji",qty:"100g paneer",cal:270},
+        ], note:"Biggest meal of the week. Eat slowly. Don't rush." },
+      { time:"5:00 PM", label:"Evening Snack", icon:"🏠", type:"snack", cal:310,
+        items:[
+          {name:"Mango lassi (full-fat milk + mango + sugar + curd)",qty:"400ml",cal:310},
+        ], note:"Liquid calories = no fullness. Best hack for low-appetite days." },
+      { time:"9:00 PM", label:"Post-Workout Shake", icon:"💪", type:"shake", cal:785,
+        items:[
+          {name:"American Muscles protein powder",qty:"2 scoops",cal:280},
+          {name:"Full-fat milk",qty:"300ml",cal:195},
+          {name:"Peanut butter",qty:"1 scoop (~30g)",cal:190},
+          {name:"Dates",qty:"2 pieces",cal:55},
+          {name:"Almonds",qty:"5 pieces",cal:35},
+          {name:"Cashews",qty:"3 pieces",cal:30},
+        ], note:null },
+      { time:"10:00 PM", label:"Dinner", icon:"🍽️", type:"dinner", cal:450,
+        items:[
+          {name:"Chapati (medium)",qty:"2 pieces",cal:150},
+          {name:"Dal makhani (with butter/ghee)",qty:"1 bowl (200ml)",cal:250},
+          {name:"Salad (cucumber, tomato, onion)",qty:"1 small bowl",cal:40},
+        ], note:"Dal makhani on Sunday night — treat yourself." },
+    ]
+  },
+];
+
+const TYPE_CLASS = {
+  breakfast:"accent-breakfast", break:"accent-break", lunch:"accent-lunch",
+  snack:"accent-snack", shake:"accent-shake", dinner:"accent-dinner"
+};
+
+let activeDay = 0;
+const openMeals = new Set();
+
+function buildTabs() {
+  const tabs = document.getElementById('dayTabs');
+  DAYS.forEach((d,i) => {
+    const btn = document.createElement('button');
+    btn.className = 'day-tab' + (i===0?' active':'');
+    btn.textContent = d.short;
+    btn.onclick = () => switchDay(i);
+    tabs.appendChild(btn);
+  });
+}
+
+function switchDay(i) {
+  activeDay = i;
+  openMeals.clear();
+  document.querySelectorAll('.day-tab').forEach((b,j) => b.classList.toggle('active', j===i));
+  renderDay();
+}
+
+function renderDay() {
+  const d = DAYS[activeDay];
+  document.getElementById('todayCalBadge').textContent = '~' + d.totalCal.toLocaleString() + ' kcal';
+  const pct = Math.min((d.totalCal / 3500) * 100, 100);
+
+  let html = `
+    <div class="day-bar">
+      <div class="day-name">${d.day}</div>
+      <div class="day-cal">~${d.totalCal.toLocaleString()} kcal</div>
+    </div>
+    <div class="cal-bar-wrap">
+      <div class="cal-bar-track"><div class="cal-bar-fill" style="width:${pct}%"></div></div>
+      <div class="cal-bar-labels"><span>0</span><span>1,750</span><span>3,500+</span></div>
+    </div>
+  `;
+
+  d.meals.forEach((m, mi) => {
+    const isOpen = openMeals.has(mi);
+    const cls = TYPE_CLASS[m.type] || '';
+    const itemsHtml = m.items.map(it => `
+      <div class="meal-item">
+        <div>
+          <div class="item-name">${it.name}</div>
+          <span class="item-qty">${it.qty}</span>
+        </div>
+        <div class="item-cal">${it.cal}</div>
+      </div>
+    `).join('');
+    const noteHtml = m.note ? `<div class="meal-note">💡 ${m.note}</div>` : '';
+
+    html += `
+      <div class="meal-card ${cls}">
+        <div class="meal-header" onclick="toggleMeal(${mi})">
+          <div class="meal-header-left">
+            <div class="meal-icon">${m.icon}</div>
+            <div>
+              <div class="meal-label">${m.label}</div>
+              <div class="meal-time">${m.time}</div>
+            </div>
+          </div>
+          <div class="meal-header-right">
+            <div class="meal-cal-badge">${m.cal} cal</div>
+            <span class="chevron ${isOpen?'open':''}">▼</span>
+          </div>
+        </div>
+        <div class="meal-body ${isOpen?'open':''}">
+          ${itemsHtml}
+          ${noteHtml}
+        </div>
+      </div>
+    `;
+  });
+
+  // Weekly grid
+  const avgCal = Math.round(DAYS.reduce((s,d)=>s+d.totalCal,0)/7);
+  html += `
+    <div class="weekly-section">
+      <div class="section-label">Weekly Overview</div>
+      <div class="weekly-grid">
+        ${DAYS.map((d2,i)=>`
+          <div class="week-cell ${i===activeDay?'active':''}" onclick="switchDay(${i})">
+            <div class="week-cell-day">${d2.short}</div>
+            <div class="week-cell-cal">${d2.totalCal}</div>
+            <div class="week-cell-unit">cal</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-label">Avg/Day</div>
+          <div class="stat-val" style="color:var(--green)">${avgCal.toLocaleString()}</div>
+          <div class="stat-unit">kcal</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Goal</div>
+          <div class="stat-val" style="color:var(--blue)">3,000+</div>
+          <div class="stat-unit">kcal/day</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Target</div>
+          <div class="stat-val" style="color:var(--orange)">58 kg</div>
+          <div class="stat-unit">~5–7 mo</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rules-section">
+      <div class="section-label">Non-Negotiable Rules</div>
+      ${[
+        ["🎒","School break","Bring bananas + peanuts EVERY day — pack the night before"],
+        ["💪","Post-workout shake","Never skip — highest single-meal calories you get"],
+        ["🍽️","Dinner","Keep it light (2 chapatis + dal/sabzi). You already had the shake"],
+        ["🧈","Add ghee/oil","1 tsp ghee to dal and rice whenever possible — easy +45 cal"],
+        ["🥛","Full-fat only","Always buy full-fat milk and curd — never low-fat versions"],
+      ].map(([icon,title,desc])=>`
+        <div class="rule-item">
+          <div class="rule-icon">${icon}</div>
+          <div>
+            <div class="rule-title">${title}</div>
+            <div class="rule-desc">${desc}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  document.getElementById('main').innerHTML = html;
+}
+
+function toggleMeal(mi) {
+  if (openMeals.has(mi)) openMeals.delete(mi);
+  else openMeals.add(mi);
+  renderDay();
+}
+
+// ── PWA install prompt ──
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').style.display = 'flex';
+});
+document.getElementById('installBtn').onclick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('installBanner').style.display = 'none';
+};
+document.getElementById('closeBanner').onclick = () => {
+  document.getElementById('installBanner').style.display = 'none';
+};
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').style.display = 'none';
+});
+
+// ── Service Worker ──
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'diet-plan-v1';
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
+      self.skipWaiting();
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+    });
+  `;
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl);
+}
+
+// ── Inline manifest (for browsers that support it) ──
+const manifest = {
+  name: "My Diet Plan",
+  short_name: "Diet Plan",
+  description: "7-day vegetarian weight gain diet plan",
+  start_url: ".",
+  display: "standalone",
+  background_color: "#0A0F1E",
+  theme_color: "#0F172A",
+  icons: [
+    { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text y='.9em' font-size='80'>💪</text></svg>", sizes: "192x192", type: "image/svg+xml" },
+    { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F172A'/><text y='.9em' font-size='80'>💪</text></svg>", sizes: "512x512", type: "image/svg+xml" }
+  ]
+};
+const mBlob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+const mUrl = URL.createObjectURL(mBlob);
+const mLink = document.createElement('link');
+mLink.rel = 'manifest'; mLink.href = mUrl;
+document.head.appendChild(mLink);
+
+buildTabs();
+renderDay();
+</script>
+</body>
+</html>
